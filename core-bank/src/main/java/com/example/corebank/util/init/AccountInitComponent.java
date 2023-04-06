@@ -27,6 +27,5 @@ public class AccountInitComponent {
         entity2.setMoney(BigDecimal.valueOf(20_000L));
         accountRepository.save(entity1);
         accountRepository.save(entity2);
-        accountService.totalMoney = BigDecimal.valueOf(30_000L);
     }
 }
