@@ -14,19 +14,14 @@ public class AccountUtilController {
     @Autowired
     private AccountService ac;
 
-    volatile BigDecimal totalMoney = BigDecimal.valueOf(30_000L);
-
     @PostMapping("/replenish")
     public void replenishBalance(@RequestBody Account account){
         ac.replenishBalance(account.getAccountId(), account.getMoney());
-        synchronized (totalMoney) {
-            totalMoney = totalMoney.add(account.getMoney());
-        }
     }
 
     @GetMapping("/getTotalS")
     public String getTotalMoneyS(){
-        return totalMoney.toString();
+        return "totalMoney.toString()";
     }
 
     @GetMapping("/getTotalDB")

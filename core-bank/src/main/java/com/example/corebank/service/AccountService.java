@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +22,15 @@ public class AccountService {
     private AccountRepository accountRepository;
 
     @Autowired
+    private AccountService accountService;
+
+    @Autowired
     private ScheduledRepelishService scheduledRepelishService;
 
-    @Retryable(retryFor = CannotAcquireLockException.class, recover = "recover")
+    @Autowired
+    private AsyncRepelishService asyncRepelishService;
+
+    @Retryable(retryFor = CannotAcquireLockException.class, recover = "recover", maxAttempts = 1)
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void replenishBalance(String accountId, BigDecimal sum){
         Account account1 = accountRepository.findById(accountId).get();
@@ -34,7 +41,7 @@ public class AccountService {
 
     @Recover
     public void recover(CannotAcquireLockException exception, String accountId, BigDecimal sum) {
-        scheduledRepelishService.addRepelish(accountId, sum);
+        asyncRepelishService.repelish(accountId, sum, accountService::replenishBalance);
     }
 
     public String getTotalMoneyDB(){
